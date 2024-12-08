@@ -54,6 +54,12 @@ lm.5.3 <- lm(res.5 ~ cartel + ice +
 
 jtest.5 <- linearHypothesis(lm.5.3, c("ice", "cartel"))
 
+lm.6 <- ivreg(log(quantity) ~ log(price) + 
+                seas1 + seas2 + seas3 + seas4 + seas5 + seas6 + seas7 + seas8 + seas9 + seas10 + seas11 + seas12 + ice | 
+                seas1 + seas2 + seas3 + seas4 + seas5 + seas6 + seas7 + seas8 + seas9 + seas10 + seas11 + seas12 + cartel + ice, data = data)
+
+lm.6.2 <- lm(log(price) ~ cartel + ice +
+               seas1 + seas2 + seas3 + seas4 + seas5 + seas6 + seas7 + seas8 + seas9 + seas10 + seas11 + seas12, data = data)
 
 myH0 <- c("seas1", "seas2", "seas3", "seas4", "seas5", "seas6", "seas7", "seas8", "seas9", "seas10", "seas11", "seas12")
 
@@ -116,17 +122,28 @@ five <- c(NA,
           jtest.5[2,5] * 2,
           1 - pchisq(jtest.5[2,5] * 2, 1))
 
+six <- c(NA,
+         NA,
+         lm.6$coefficients[2],
+         coeftest(lm.6, vcov.=vcovHC(lm.6, "HC1"))[2,2],
+         linearHypothesis(lm.6, myH0, vcov. = vcovHC(lm.6, "HC1"))[2,3] / 12,
+         linearHypothesis(lm.6, myH0, vcov. = vcovHC(lm.6, "HC1"))[2,4],
+         linearHypothesis(lm.6.2, c("cartel", "ice"), vcov. = vcovHC(lm.6.2, "HC1"))[2,3],
+         linearHypothesis(lm.6.2, c("cartel", "ice"), vcov. = vcovHC(lm.6.2, "HC1"))[2,4],
+         NA,
+         NA)
 
 
-my_table <- tibble(rows = rows, one, two, three, four, five) %>%
-  mutate(across(2:6, ~ round(.x, 3))) %>%
-  mutate(across(2:6, as.character)) %>%
-  mutate(across(2:6, ~ replace_na(.x, '-'))) %>%
-  mutate(across(2:6, ~ case_when(rows == '(SE)' & .x != '-' ~  paste('(', .x, ')', sep=''),
+my_table <- tibble(rows = rows, one, two, three, four, five, six) %>%
+  mutate(across(2:7, ~ round(.x, 3))) %>%
+  mutate(across(2:7, as.character)) %>%
+  mutate(across(2:7, ~ replace_na(.x, '-'))) %>%
+  mutate(across(2:7, ~ case_when(rows == '(SE)' & .x != '-' ~  paste('(', .x, ')', sep=''),
                                  rows == '(p-value)' & .x != '-' ~  paste('(', .x, ')', sep=''),
                                  .default = .x) )) %>%
-  add_row(rows = 'Instrumental variables', one = '-', two = '-', three = 'cartel', four = 'ice',  five = 'cartel, ice', .before = 7) %>%
-  add_row(rows = 'Estimation method', one = 'OLS', two = 'OLS', three = 'TSLS', four = 'TSLS',  five = 'TSLS', .before = 7) %>%
-  add_row(rows = 'Dependent variable:', one = 'ln(P)', two = 'ln(Q)', three = 'ln(Q)', four = 'ln(Q)',  five = 'ln(Q)', .before = 1)
+  add_row(rows = 'Instrumental variables', one = '-', two = '-', three = 'cartel', four = 'ice',  five = 'cartel, ice', six = 'cartel', .before = 7) %>%
+  add_row(rows = 'Estimation method', one = 'OLS', two = 'OLS', three = 'TSLS', four = 'TSLS',  five = 'TSLS', six = 'TSLS', .before = 7) %>%
+  add_row(rows = 'Dependent variable:', one = 'ln(P)', two = 'ln(Q)', three = 'ln(Q)', four = 'ln(Q)',  five = 'ln(Q)', six = 'ln(Q)', .before = 1)
 
 my_table
+# Regression six includes ice as a control variable and uses cartel as the instrument
