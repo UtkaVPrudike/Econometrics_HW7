@@ -15,6 +15,10 @@ lm.2 <- lm(log(quantity) ~ log(price) +
 coeftest(lm.2, vcov. = vcovHC(lm.2, 'HC1'))
 # the estimated demand elasticity is -0.66 with SE = 0.075
 
+# This estimate is probably biased, because interaction of supply and demand introduces simultaneous causality bias.
+# When a non-monetary factor shifts the demand curve to the right, the demand quantity increases and thus drives the price up, ceteris paribus
+# The opposite situation occurs when a non-monetary factor shifts the demand curve left.
+
 
 
 # ----- Task 7 ----- 
